@@ -14,7 +14,14 @@ FetchContent_MakeAvailable(IbWinCpp)
 
 # Detours
 find_path(DETOURS_INCLUDE_DIR detours/detours.h)
-find_library(DETOURS_LIBRARY detours)
+find_library(DETOURS_LIBRARY_RELEASE detours PATHS "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib" NO_DEFAULT_PATH)
+find_library(DETOURS_LIBRARY_DEBUG detours PATHS "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/lib" NO_DEFAULT_PATH)
+if(NOT DETOURS_LIBRARY_RELEASE)
+    find_library(DETOURS_LIBRARY_RELEASE detours)
+endif()
+if(NOT DETOURS_LIBRARY_DEBUG)
+    set(DETOURS_LIBRARY_DEBUG "${DETOURS_LIBRARY_RELEASE}")
+endif()
 
 # RapidJSON
 find_package(RapidJSON CONFIG REQUIRED)
@@ -42,7 +49,7 @@ target_include_directories(IbInputSimulator
 )
 target_link_libraries(IbInputSimulator
     PRIVATE IbWinCpp    
-    PRIVATE ${DETOURS_LIBRARY}
+    PRIVATE $<IF:$<CONFIG:Debug>,${DETOURS_LIBRARY_DEBUG},${DETOURS_LIBRARY_RELEASE}>
     PRIVATE rapidjson
 )
 
